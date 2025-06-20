@@ -6,9 +6,26 @@ import creational.factory.ShapeFactory;
 import creational.prototype.Author;
 import creational.prototype.Book;
 import creational.singleton.SingletonExample;
+import structural.adapter.DistanceClassReporter;
+import structural.adapter.DistanceInfo;
+import structural.adapter.DistanceObjectReporter;
+import structural.bridge.*;
+import structural.composite.Composite;
+import structural.composite.Leaf;
+import structural.decorator.*;
+import structural.facade.Facade;
+import structural.flyweight.Flyweight;
+import structural.flyweight.FlyweightFactory;
+import structural.proxy.FastThing;
+import structural.proxy.Proxy;
+
+import java.io.Console;
 
 public class Main {
     public static void main(String[] args) {
+        // CREATIONAL
+         /*
+
         // Singleton
         SingletonExample instance1 = SingletonExample.getInstance();
         SingletonExample instance2 = SingletonExample.getInstance();
@@ -62,6 +79,100 @@ public class Main {
         System.out.println("Author 1: " + author1);
         Author author2 = (Author) author1.doClone();
         System.out.println("Author 2: " + author2);
+        */
+
+        // STRUCTURAL
+
+        // Adapter
+        DistanceInfo distanceInfo = new DistanceObjectReporter();
+        testDistance(distanceInfo);
+        System.out.println();
+
+        // Composite
+        testComposite();
+        System.out.println();
+
+        // Proxy
+        Proxy proxy = new Proxy();
+        FastThing fastThing = new FastThing();
+        fastThing.sayHello();
+        proxy.sayHello();
+        System.out.println();
+
+        // Flyweight
+        FlyweightFactory flyweightFactory = FlyweightFactory.getInstance();
+        for (int i = 0; i < 5; i++) {
+            Flyweight flyweightAdder = flyweightFactory.getFlyweight("add");
+            flyweightAdder.doMath(i, i);
+            Flyweight flyweightMultiplier = flyweightFactory.getFlyweight("multiply");
+            flyweightMultiplier.doMath(i, i);
+        }
+        System.out.println();
+
+        // Facade
+        Facade facade = new Facade();
+        int x = 4;
+        System.out.println("Cube of " + x + ": " + facade.cubeX(x));
+        System.out.println("Cube of " + x + " times 2: " + facade.cubeXTimes2(x));
+        System.out.println(x + " to sixth power times 2: " + facade.xToSixthPowerTimes2(x));
+        System.out.println();
+
+        // Bridge
+        Artist artist = new PortraitArtist(new OilPaint());
+        artist.create();
+        artist.setMedium(new Pencil());
+        artist.create();
+        artist = new LandscapeArtist(new Watercolor());
+        artist.create();
+        artist.setMedium(new OilPaint());
+        artist.create();
+
+        // Decorator
+        Cake cake = new ExistingCake();
+        cake.describe();
+        cake = new FrostingDecorator(cake);
+        cake.describe();
+        cake = new FruitsDecorator(cake);
+        cake.describe();
+        cake = new WritingDecorator(cake);
+        cake.describe();
+
 
     }
+
+    public static void testDistance(DistanceInfo distanceInfo) {
+        distanceInfo.setDistanceInkm(1000);
+        System.out.println("Distance in km: " + distanceInfo.getDistanceInkm());
+        System.out.println("Distance in miles: " + distanceInfo.getDistanceInMiles());
+        distanceInfo.setDistanceInMiles(800);
+        System.out.println("Distance in km: " + distanceInfo.getDistanceInkm());
+        System.out.println("Distance in miles: " + distanceInfo.getDistanceInMiles());
+    }
+
+    public static void testComposite(){
+        Leaf leaf1 = new Leaf("Leaf1");
+        Leaf leaf2 = new Leaf("Leaf2");
+        Leaf leaf3 = new Leaf("Leaf3");
+
+        Composite composite1 = new Composite();
+        composite1.add(leaf1);
+        composite1.add(leaf2);
+        Composite composite2 = new Composite();
+        composite2.add(leaf1);
+        Composite composite3 = new Composite();
+        composite3.add(composite1);
+        composite3.add(composite2);
+        composite3.add(leaf3);
+
+        System.out.println("Leaf1: ");
+        leaf1.sayHello();
+        System.out.println("Composite1: ");
+        composite1.sayHello();
+        System.out.println("Composite2: ");
+        composite2.sayHello();
+        System.out.println("Composite3: ");
+        composite3.sayGoodbye();
+
+    }
+
 }
