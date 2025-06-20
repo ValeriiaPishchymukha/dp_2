@@ -1,25 +1,31 @@
-import creational.abstractfactory.AbstractFactory;
-import creational.abstractfactory.Vehicle;
-import creational.abstractfactory.VehicleFactory;
-import creational.builder.*;
-import creational.factory.ShapeFactory;
-import creational.prototype.Author;
-import creational.prototype.Book;
-import creational.singleton.SingletonExample;
-import structural.adapter.DistanceClassReporter;
+import behavioral.chain.*;
+import behavioral.command.*;
+import behavioral.iterator.Playlist;
+import behavioral.iterator.Song;
+import behavioral.mediator.*;
+import behavioral.memento.BalanceInfo;
+import behavioral.memento.BalanceInfoCaretaker;
+import behavioral.observer.BookClub;
+import behavioral.observer.BookClubMember;
+import behavioral.state.AngryState;
+import behavioral.state.HappyState;
+import behavioral.state.Person;
+import behavioral.state.SadState;
+import behavioral.strategy.BikeStrategy;
+import behavioral.strategy.CarStrategy;
+import behavioral.strategy.Context;
+import behavioral.strategy.Strategy;
+import behavioral.template.BreakfastMeal;
+import behavioral.template.Meal;
+import behavioral.template.PastaMeal;
+import behavioral.visitor.*;
 import structural.adapter.DistanceInfo;
-import structural.adapter.DistanceObjectReporter;
-import structural.bridge.*;
 import structural.composite.Composite;
 import structural.composite.Leaf;
-import structural.decorator.*;
-import structural.facade.Facade;
-import structural.flyweight.Flyweight;
-import structural.flyweight.FlyweightFactory;
-import structural.proxy.FastThing;
-import structural.proxy.Proxy;
 
-import java.io.Console;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -82,7 +88,7 @@ public class Main {
         */
 
         // STRUCTURAL
-
+        /*
         // Adapter
         DistanceInfo distanceInfo = new DistanceObjectReporter();
         testDistance(distanceInfo);
@@ -136,7 +142,141 @@ public class Main {
         cake.describe();
         cake = new WritingDecorator(cake);
         cake.describe();
+        */
 
+        // BEHAVIORAL
+        // Template
+        Meal pasta = new PastaMeal();
+        pasta.doMeal();
+
+        System.out.println();
+
+        Meal breakfast = new BreakfastMeal();
+        breakfast.doMeal();
+        System.out.println();
+
+        // Mediator
+        Mediator mediator = new Mediator();
+        Buyer swedishBuyer = new SwedishBuyer(mediator);
+        Buyer frenchBuyer = new FrenchBuyer(mediator);
+        float sellingPriceInDollars = 10.0f;
+        AmericanSeller americanSeller = new AmericanSeller(mediator,
+                sellingPriceInDollars);
+        DollarConverter dollarConverter = new DollarConverter(mediator);
+        float swedishBidInKronor = 55.0f;
+        while (!swedishBuyer.attemptToPurchase(swedishBidInKronor)) {
+            swedishBidInKronor += 15.0f;
+        }
+        float frenchBidInEuros = 3.0f;
+        while (!frenchBuyer.attemptToPurchase(frenchBidInEuros)) {
+            frenchBidInEuros += 1.5f;
+        }
+
+        // Chain of Responsibility
+        PlanetHandler chain = setUpChain();
+        chain.handleRequest(PlanetEnum.VENUS);
+        chain.handleRequest(PlanetEnum.MERCURY);
+        chain.handleRequest(PlanetEnum.EARTH);
+        chain.handleRequest(PlanetEnum.JUPITER);
+
+        // Observer
+        BookClub bookClub = new BookClub("Old Book");
+        BookClubMember obs1 = new BookClubMember("George");
+        BookClubMember obs2 = new BookClubMember("Laura");
+        BookClubMember obs3 = new BookClubMember("Sara");
+        bookClub.addObserver(obs1);
+        bookClub.addObserver(obs2);
+        bookClub.addObserver(obs3);
+        bookClub.addNewBook("New Book 1");
+        bookClub.removeObserver(obs2);
+        bookClub.addNewBook("New Book 2");
+
+        // Strategy
+        int distance = 10;
+        Strategy carStrategy = new CarStrategy();
+        Context context = new Context(distance, carStrategy);
+        System.out.println("Is the distance (" + context.getTemperatureInkm() + "km) good for taking a car? ");
+        context.getResult();
+        Strategy bikeStrategy = new BikeStrategy();
+        context.setStrategy(bikeStrategy);
+        System.out.println("Is the distance (" + context.getTemperatureInkm() + "km) good for taking a bike? ");
+        context.getResult();
+        System.out.println();
+
+        // Command
+        Light light = new Light();
+        Command lightOn = new LightOnCommand(light);
+        Command lightOff = new LightOffCommand(light);
+        LightInvoker lightInvoker = new LightInvoker(lightOn);
+        lightInvoker.invoke();
+        lightInvoker.setCommand(lightOff);
+        lightInvoker.invoke();
+        System.out.println();
+
+        // State
+        Person person = new Person(new HappyState());
+        System.out.println("Happy state: " + person.saySomething());
+        person.setEmotionalState(new SadState());
+        System.out.println("Sad state: " + person.saySomething());
+        person.setEmotionalState(new AngryState());
+        System.out.println("Angry state: " + person.saySomething());
+
+        //Visitor
+        TwoElement two1 = new TwoElement(3, 3);
+        TwoElement two2 = new TwoElement(2, 7);
+        ThreeElement three1 = new ThreeElement(3, 4, 5);
+        List<NumberElement> numberElements = new ArrayList<NumberElement>();
+        numberElements.add(two1);
+        numberElements.add(two2);
+        numberElements.add(three1);
+        System.out.println("SumVisitor: ");
+        NumberVisitor sumVisitor = new SumVisitor();
+        sumVisitor.visit(numberElements);
+        System.out.println("\nTotalSumVisitor: ");
+        TotalSumVisitor totalSumVisitor = new TotalSumVisitor();
+        totalSumVisitor.visit(numberElements);
+        System.out.println("Total sum:" + totalSumVisitor.getTotalSum());
+        System.out.println();
+
+        // Iterator
+        Song s1 = new Song("Song 1", "Artist 1");
+        Song s2 = new Song("Song 2", "Artist 2");
+        Song s3 = new Song("Song 3", "Artist 3");
+        Playlist playlist = new Playlist();
+        playlist.addItem(s1);
+        playlist.addItem(s2);
+        playlist.addItem(s3);
+        System.out.println("Displaying Playlist: ");
+        Iterator<Song> iterator = playlist.iterator();
+        while (iterator.hasNext()) {
+            Song item = iterator.next();
+            System.out.println(item);
+        }
+        System.out.println("\nRemoving last song");
+        iterator.remove();
+        System.out.println("\nDisplaying Menu:");
+        iterator = playlist.iterator();
+        while (iterator.hasNext()) {
+            Song item = iterator.next();
+            System.out.println(item);
+        }
+
+        // Memento
+        BalanceInfoCaretaker balanceInfoCaretaker = new BalanceInfoCaretaker();
+
+        BalanceInfo balanceInfo = new BalanceInfo("Fred", 1, 1650);
+        System.out.println(balanceInfo);
+        balanceInfo.setDayNumberAndBalance(2, 1580);
+        System.out.println(balanceInfo);
+        System.out.println("Saving state.");
+        balanceInfoCaretaker.saveState(balanceInfo);
+        balanceInfo.setDayNumberAndBalance(3, 1520);
+        System.out.println(balanceInfo);
+        balanceInfo.setDayNumberAndBalance(4, 1750);
+        System.out.println(balanceInfo);
+        System.out.println("Restoring saved state.");
+        balanceInfoCaretaker.restoreState(balanceInfo);
+        System.out.println(balanceInfo);
 
     }
 
@@ -174,5 +314,17 @@ public class Main {
         composite3.sayGoodbye();
 
     }
+
+    public static PlanetHandler setUpChain() {
+        PlanetHandler mercuryHandler = new MercuryHandler();
+        PlanetHandler venusHandler = new VenusHandler();
+        PlanetHandler earthHandler = new EarthHandler();
+        PlanetHandler others = new OtherPlanets();
+        mercuryHandler.setSuccessor(venusHandler);
+        venusHandler.setSuccessor(earthHandler);
+        earthHandler.setSuccessor(others);
+        return mercuryHandler;
+    }
+
 
 }
